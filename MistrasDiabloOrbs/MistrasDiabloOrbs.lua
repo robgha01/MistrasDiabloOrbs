@@ -128,7 +128,11 @@ local defaultsTable = {
 		formatting = {
 			truncated = true,
 			commaSeparated = false
-		}
+		},
+		offsetX = -250,
+		offsetY = 0,
+		point = "BOTTOM",
+		relativePoint = "BOTTOM",
 	},
 
 	--mana orb vars
@@ -167,7 +171,11 @@ local defaultsTable = {
 		formatting = {
 			truncated = true,
 			commaSeparated = false
-		}
+		},
+		offsetX = 250,
+		offsetY = 0,
+		point = "BOTTOM",
+		relativePoint = "BOTTOM",
 	},
 
 	--pet orb vars
@@ -237,7 +245,7 @@ end
 
 
 --function to make any frame object movable
-local function makeFrameMovable(frame,button)
+local function makeFrameMovable(frame,button,callback)
 	local btnString = "LeftButton"
 	if button then
 		btnString = button
@@ -252,7 +260,13 @@ local function makeFrameMovable(frame,button)
 			self:StartMoving()
 		end
 	 end)
-	frame:SetScript("OnDragStop", function(self) self:StopMovingOrSizing() end)
+	frame:SetScript("OnDragStop", function(self)
+		self:StopMovingOrSizing()
+		if callback then
+			local point, _, relativePoint, xOfs, yOfs = self:GetPoint()
+			callback(point,relativePoint,xOfs,yOfs)
+		end
+	end)
 end
 
 --a wrapper that allows us to filter what our resource is, based on our class or specialty
@@ -1110,10 +1124,18 @@ local function checkDefaultsFromMemory()
 	if not D32CharacterData.healthOrb.textures then D32CharacterData.healthOrb.textures = defaultTextures.healthOrb end
 	if D32CharacterData.healthOrb.font1.show == nil then D32CharacterData.healthOrb.font1.show = defaultsTable.healthOrb.font1.show end
 	if D32CharacterData.healthOrb.font2.show == nil then D32CharacterData.healthOrb.font2.show = defaultsTable.healthOrb.font2.show end
+	if D32CharacterData.healthOrb.offsetX == nil then D32CharacterData.healthOrb.offsetX = defaultsTable.healthOrb.offsetX end
+	if D32CharacterData.healthOrb.offsetY == nil then D32CharacterData.healthOrb.offsetY = defaultsTable.healthOrb.offsetY end
+	if D32CharacterData.healthOrb.point == nil then D32CharacterData.healthOrb.point = defaultsTable.healthOrb.point end
+	if D32CharacterData.healthOrb.relativePoint == nil then D32CharacterData.healthOrb.relativePoint = defaultsTable.healthOrb.relativePoint end
 	if not D32CharacterData.manaOrb then D32CharacterData.manaOrb = defaultsTable.manaOrb end
 	if not D32CharacterData.manaOrb.textures then D32CharacterData.manaOrb.textures = defaultTextures.manaOrb end
 	if D32CharacterData.manaOrb.font1.show == nil then D32CharacterData.manaOrb.font1.show = defaultsTable.manaOrb.font1.show end
 	if D32CharacterData.manaOrb.font2.show == nil then D32CharacterData.manaOrb.font2.show = defaultsTable.manaOrb.font2.show end
+	if D32CharacterData.manaOrb.offsetX == nil then D32CharacterData.manaOrb.offsetX = defaultsTable.manaOrb.offsetX end
+	if D32CharacterData.manaOrb.offsetY == nil then D32CharacterData.manaOrb.offsetY = defaultsTable.manaOrb.offsetY end
+	if D32CharacterData.manaOrb.point == nil then D32CharacterData.manaOrb.point = defaultsTable.manaOrb.point end
+	if D32CharacterData.manaOrb.relativePoint == nil then D32CharacterData.manaOrb.relativePoint = defaultsTable.manaOrb.relativePoint end
 	if not D32CharacterData.druidColors then D32CharacterData.druidColors = defaultsTable.druidColors end
 	if not D32CharacterData.combat then D32CharacterData.combat = defaultsTable.combat end
 	if not D32CharacterData.combat.galaxy then D32CharacterData.combat.galaxy = defaultsTable.combat.galaxy end
@@ -1418,9 +1440,29 @@ if D32className == "Paladin" or D32className == "Warlock" or D32className == "Ro
 if powerFrame then makeFrameMovable(powerFrame) end
 angelFrame = addArtwork(images.."d3_angel2test.tga",manaOrb,"AngelFrame",70,5,160,160)
 demonFrame = addArtwork(images.."d3_demon2test.tga",healthOrb,"DemonFrame",-90,5,160,160)
-makeFrameMovable(healthOrb)
-makeFrameMovable(manaOrb)
+makeFrameMovable(healthOrb, nil, function(point,relativePoint,xOfs,yOfs)
+	D32CharacterData.healthOrb.point = point
+	D32CharacterData.healthOrb.relativePoint = relativePoint
+	D32CharacterData.healthOrb.offsetX = xOfs
+	D32CharacterData.healthOrb.offsetY = yOfs
+end)
+makeFrameMovable(manaOrb, nil, function(point,relativePoint,xOfs,yOfs)
+	D32CharacterData.manaOrb.point = point
+	D32CharacterData.manaOrb.relativePoint = relativePoint
+	D32CharacterData.manaOrb.offsetX = xOfs
+	D32CharacterData.manaOrb.offsetY = yOfs
+end)
 makeFrameMovable(petOrb)
+
+function healthOrb:UpdateState()
+	local point, relativeTo, relativePoint = healthOrb:GetPoint()
+	healthOrb:SetPoint(D32CharacterData.healthOrb.point, relativeTo, D32CharacterData.healthOrb.relativePoint, D32CharacterData.healthOrb.offsetX, D32CharacterData.healthOrb.offsetY)	
+end
+
+function manaOrb:UpdateState()
+	local point, relativeTo, relativePoint = manaOrb:GetPoint()
+	manaOrb:SetPoint(D32CharacterData.manaOrb.point, relativeTo, D32CharacterData.manaOrb.relativePoint, D32CharacterData.manaOrb.offsetX, D32CharacterData.manaOrb.offsetY)
+end
 
 local eventFrame = CreateFrame("Frame")
 eventFrame:RegisterEvent("ADDON_LOADED")
@@ -1450,8 +1492,11 @@ function eventFrame:OnEvent(event,arg1)
 			D32UpdateOrbColor(manaOrb,D32CharacterData.manaOrb.orbColor,D32CharacterData.manaOrb.galaxy,D32CharacterData.manaOrb.font1,D32CharacterData.manaOrb.font2)
 		end
 		D32GUI:Hide()
+		-- Reposition based on saved data
+		healthOrb:UpdateState()
+		manaOrb:UpdateState()
 	elseif event == "VARIABLES_LOADED" then
-		D32MiniMapButtonPosition_LoadFromDefaults()
+		D32MiniMapButtonPosition_LoadFromDefaults()		
 	elseif event == "UNIT_ENTERED_VEHICLE" then
 		if arg1 == "player" and UnitControllingVehicle("player") then
 			vehicleInUse = 1
