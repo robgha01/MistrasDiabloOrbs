@@ -1,7 +1,7 @@
 ## Title: Mistra's Diablo Orbs
 ## Version: 2.0.1
 ## Author: John Rubin
-## Interface: 70300
+## Interface: 30300
 ## SavedVariablesPerCharacter: D32CharacterData, MD3PlayerData
 ## SavedVariables: D32MiniMapButtonPosition
 ## Notes: Fully customizable Diablo Orbs, for WoW!
