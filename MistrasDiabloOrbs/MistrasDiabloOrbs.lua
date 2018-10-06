@@ -181,6 +181,9 @@ local defaultsTable = {
 	--pet orb vars
 	petOrb = {scale = 1, enabled = true, showValue = false, showPercentage = true, healthOrb = {r=Hr,g=Hg,b=Hb,a=Ha}, manaOrb={r=Mr,g=Mg,b=Mb,a=Ma}},
 
+	--pet orb vars
+	extraPowerOrb = {scale = 1, enabled = true, showValue = false, showPercentage = true, rageOrb = {r=Hr,g=Hg,b=Hb,a=Ha}, energyOrb={r=Mr,g=Mg,b=Mb,a=Ma}},
+
 	--orb fonts
 	font = fontChoices[1],
 
@@ -547,6 +550,111 @@ local function updatePetValues(orb)
 	PetPowerUpdate(orb)
 end
 
+-- Update Extra Power
+local previousExtraPowerRage = UnitPower("player",1)
+local function ExtraPowerRageUpdate(orb)
+	local maxRage = UnitPowerMax("player",1)
+	if not tonumber(maxRage) or maxRage == 0 then maxRage = 1 end
+	local currentRage = UnitPower("player",1)
+	if not tonumber(currentRage) then currentRage = 0 end
+	local ragePercentage = currentRage/maxRage
+	local inverseragePercentage = math.abs(ragePercentage - 1)
+
+	local step = 0
+	local onePercentHealth = maxRage / 100
+
+	local newValue = previousExtraPowerRage
+	if previousExtraPowerRage < currentRage then
+		step = 1
+		if previousExtraPowerRage + (onePercentHealth * step) > currentRage then
+			newValue = currentRage
+		else
+			newValue = previousExtraPowerRage + (onePercentHealth * step)
+		end
+	elseif previousExtraPowerRage > currentRage then
+		step = -1
+		if previousExtraPowerRage + (onePercentHealth * step) < currentRage then
+			newValue = currentRage
+		else
+			newValue = previousExtraPowerRage + (onePercentHealth * step)
+		end
+	end
+	previousExtraPowerRage = newValue
+
+	local targetTexHeight = (previousExtraPowerRage/maxRage * (85 * orb:GetScale()))
+	if targetTexHeight < 1 then targetTexHeight = 1 end
+	local newDisplayPercentage = previousExtraPowerRage/maxRage
+	if newDisplayPercentage > 1 then
+		newDisplayPercentage = 0
+		targetTexHeight = 1
+	end
+	local string1 = math.floor(newDisplayPercentage*100)
+	if tonumber(string1) == nil then string1 = 0 end
+	orb.font1:SetText(string1)
+
+	local string = valueFormat(currentRage, nil, true)
+	orb.font3:SetText(string)
+
+	orb.filling1:SetHeight(targetTexHeight)
+	orb.filling1:SetTexCoord(0,1,math.abs(newDisplayPercentage - 1),1)
+	orb.galaxy1:SetAlpha(newDisplayPercentage * 0.2)
+	orb.galaxy2:SetAlpha(newDisplayPercentage * 0.2)
+	orb.galaxy3:SetAlpha(newDisplayPercentage * 0.2)
+end
+
+local previousExtraPowerEnergy = UnitPower("player",3)
+local function ExtraPowerEnergyUpdate(orb)
+	local maxEnergy = UnitPowerMax("player",3)
+	if not tonumber(maxEnergy) or maxEnergy == 0 then maxEnergy = 1 end
+	local currentEnergy = UnitPower("player",3)
+	if not tonumber(currentEnergy) then currentEnergy = 0 end
+	local energyPercentage = currentEnergy/maxEnergy
+	
+	local step = 0
+	local fillPercentage = 100
+	local onePercentEnergy = maxEnergy / fillPercentage
+
+	local newValue = previousExtraPowerEnergy
+	if previousExtraPowerEnergy < currentEnergy then
+		step = 1
+		if previousExtraPowerEnergy + (onePercentEnergy * step) > currentEnergy then
+			newValue = currentEnergy
+		else
+			newValue = previousExtraPowerEnergy + (onePercentEnergy * step)
+		end
+	elseif previousExtraPowerEnergy > currentEnergy then
+		step = -1
+		if previousExtraPowerEnergy + (onePercentEnergy * step) < currentEnergy then
+			newValue = currentEnergy
+		else
+			newValue = previousExtraPowerEnergy + (onePercentEnergy * step)
+		end
+	end
+	previousExtraPowerEnergy = newValue
+
+	local targetTexHeight = (previousExtraPowerEnergy/maxEnergy * (85 * orb:GetScale()))
+	if targetTexHeight < 1 then targetTexHeight = 1 end
+	local newDisplayPercentage = previousExtraPowerEnergy / maxEnergy
+	if newDisplayPercentage > 1 then
+		newDisplayPercentage = 0
+		targetTexHeight = 1
+	end
+	local string1 = math.floor(newDisplayPercentage*100)
+	if tonumber(string1) == nil then string1 = 0 end
+	orb.font2:SetText(string1)
+
+	local string = valueFormat(currentEnergy, nil, true)
+	orb.font4:SetText(string)
+
+	orb.filling2:SetHeight(targetTexHeight)
+	orb.filling2:SetTexCoord(0,1,math.abs(newDisplayPercentage-1),1)
+end
+
+function updateExtraPowerValues(orb)
+	ExtraPowerRageUpdate(orb)
+	ExtraPowerEnergyUpdate(orb)
+end
+
 local function CreateGalaxy(orb, file, duration,size,x,y)
 	local galaxy = CreateFrame("Frame",nil,orb)
 	galaxy:SetHeight(size)
@@ -759,6 +867,101 @@ local function CreatePetOrb(parent,name,size,offsetX,offsetY,monitorFunc)
 	--place setup the appropriate character events on the health orb
 	return orb
 end
+
+
+local function CreateExtraPowerOrb(parent,name,size,offsetX,offsetY,monitorFunc)
+	local orb
+	orb = CreateFrame("Button",name,parent,"SecureActionButtonTemplate")
+	orb:SetHeight(size)
+	orb:SetWidth(size)
+	orb:SetFrameStrata("BACKGROUND")
+	orb.bg = orb:CreateTexture(nil,"OVERLAY")
+	orb.bg:SetTexture(images .. "orb_gloss3.tga")
+	orb.bg:SetAllPoints(orb)
+	orb.filling1 = orb:CreateTexture(nil,"BACKGROUND")
+	orb.filling1:SetTexture(images.."petFilling_health.tga")
+	orb.filling1:SetPoint("BOTTOMLEFT",3,0)
+	orb.filling1:SetWidth(size / 2 - 3)
+	orb.filling1:SetHeight(size - 6)
+	orb.filling1:SetAlpha(1)
+	orb.filling2 = orb:CreateTexture(nil,"BACKGROUND")
+	orb.filling2:SetTexture(images.."petFilling_power.tga")
+	orb.filling2:SetPoint("BOTTOMRIGHT",-3,0)
+	orb.filling2:SetWidth(size / 2 - 3)
+	orb.filling2:SetHeight(size - 6)
+	orb.filling2:SetAlpha(1)
+	local orbGlossHolder = CreateFrame("Frame",nil,orb)
+	orbGlossHolder:SetAllPoints(orb)
+	orbGlossHolder:SetFrameStrata("LOW")
+	local orbGlossOverlay = orbGlossHolder:CreateTexture(nil,"BACKGROUND")
+	orbGlossOverlay:SetTexture(images .. "orb_gloss3.tga")
+	orbGlossOverlay:SetAllPoints(orbGlossHolder)
+
+	orb.divider = CreateFrame("Frame",nil,orb)
+	orb.divider.texture = orb.divider:CreateTexture(nil,"OVERLAY")
+	orb.divider.texture:SetTexture(images.."middleBar.tga")
+	orb.divider:SetAllPoints(true)
+	orb.divider.texture:SetAllPoints(true)
+	orb.galaxy1 = CreateGalaxy(orb, D32RotationTextureChoices[1].."1.tga",36,size-8,0,0)
+	orb.galaxy2 = CreateGalaxy(orb, D32RotationTextureChoices[1].."2.tga", 22,size-8,0,0)
+	orb.galaxy3 = CreateGalaxy(orb, D32RotationTextureChoices[1].."3.tga", 29,size-8,0,0)
+	orb.galaxy1:SetAlpha(0.3)
+	orb.galaxy2:SetAlpha(0.3)
+	orb.galaxy3:SetAlpha(0.3)
+	CreateGlow(orb)
+
+	orb.fontHolder = CreateFrame("FRAME",nil,orb)
+	orb.fontHolder:SetFrameStrata("MEDIUM")
+	orb.fontHolder:SetAllPoints(orb)
+	orb.font1 = orb.fontHolder:CreateFontString(nil, "OVERLAY")
+	orb.font1:SetFont(D32CharacterData.font,14,"THINOUTLINE")
+	orb.font1:SetPoint("CENTER",-20,5)
+	orb.font1:SetText("100")
+	orb.font2 = orb.fontHolder:CreateFontString(nil,"OVERLAY")
+	orb.font2:SetFont(D32CharacterData.font,14,"THINOUTLINE")
+	orb.font2:SetPoint("CENTER",20,5)
+	orb.font2:SetText("100")
+	orb.font3 = orb.fontHolder:CreateFontString(nil, "OVERLAY")
+	orb.font3:SetFont(D32CharacterData.font,9,"THINOUTLINE")
+	orb.font3:SetPoint("CENTER",-20,-8)
+	orb.font3:SetText("100")
+	orb.font4 = orb.fontHolder:CreateFontString(nil,"OVERLAY")
+	orb.font4:SetFont(D32CharacterData.font,9,"THINOUTLINE")
+	orb.font4:SetPoint("CENTER",20,-8)
+	orb.font4:SetText("100")
+
+	orb:SetScript("OnUpdate",updatePetValues)
+
+	--position defaults
+	orb:ClearAllPoints()
+	orb:SetPoint("CENTER",offsetX,offsetY)
+
+	--show the orb
+	orb:Show()
+
+	--fill the orb with colors! WOO!
+	orb.filling1:SetVertexColor(healthOrb.filling:GetVertexColor())
+	orb.filling2:SetVertexColor(manaOrb.filling:GetVertexColor())
+
+	orb.menu = function(orb) ToggleDropDownMenu(1, 1, PlayerFrameDropDown, "cursor", 0 ,0) end
+	orb:RegisterForClicks("AnyUp")
+	orb:SetAttribute("type1","target")
+	orb:SetAttribute("type2","menu")
+	orb:SetAttribute("unit","player")
+	orb.tooltip = CreateFrame("GameTooltip","PlayerTooltip",nil,"GameToolTipTemplate")
+	orb:SetScript("OnEnter", function()
+		GameTooltip_SetDefaultAnchor(GameTooltip,UIParent)
+		GameTooltip:SetUnit("player")
+		GameTooltip:Show()
+	end)
+	orb:SetScript("OnLeave",function()
+		GameTooltip:Hide()
+	end)
+
+	--place setup the appropriate character events on the health orb
+	return orb
+end
+
 
 local function CreateXMLOrb(parent,name,size,fillTexture,galaxyTexture)
 	local orb
@@ -1070,6 +1273,25 @@ function checkPetFontPlacement()
 	end
 end
 
+function checkExtraPowerFontPlacement()
+	if D32CharacterData.extraPowerOrb.showValue and D32CharacterData.extraPowerOrb.showPercentage then
+		extraPowerOrb.font3:SetPoint("CENTER",-20,-8)
+		extraPowerOrb.font4:SetPoint("CENTER",20,-8)
+		extraPowerOrb.font1:SetPoint("CENTER",-20,5)
+		extraPowerOrb.font2:SetPoint("CENTER",20,5)
+		extraPowerOrb.font3:SetFont(D32CharacterData.font,9,"THINOUTLINE")
+		extraPowerOrb.font4:SetFont(D32CharacterData.font,9,"THINOUTLINE")
+	elseif D32CharacterData.extraPowerOrb.showValue and not D32CharacterData.extraPowerOrb.showPercentage then
+		extraPowerOrb.font3:SetPoint("CENTER",-20,0)
+		extraPowerOrb.font4:SetPoint("CENTER",20,0)
+		extraPowerOrb.font3:SetFont(D32CharacterData.font,11 * extraPowerOrb:GetScale(),"THINOUTLINE")
+		extraPowerOrb.font4:SetFont(D32CharacterData.font,11 * extraPowerOrb:GetScale(),"THINOUTLINE")
+	elseif not D32CharacterData.extraPowerOrb.showValue and D32CharacterData.extraPowerOrb.showPercentage then
+		extraPowerOrb.font1:SetPoint("CENTER",-20,0)
+		extraPowerOrb.font2:SetPoint("CENTER",20,0)
+	end
+end
+
 function setOrbFontPlacement(orb,orbData)
 	orb.font1:Show()
 	orb.font2:Show()
@@ -1144,6 +1366,8 @@ local function checkDefaultsFromMemory()
 	if not D32CharacterData.font then D32CharacterData.font = defaultsTable.font end
 	if not D32CharacterData.petOrb then D32CharacterData.petOrb = defaultsTable.petOrb end
 	if not D32CharacterData.petOrb.scale then D32CharacterData.petOrb.scale = defaultsTable.petOrb.scale end
+	if not D32CharacterData.extraPowerOrb then D32CharacterData.extraPowerOrb = defaultsTable.extraPowerOrb end
+	if not D32CharacterData.extraPowerOrb.scale then D32CharacterData.extraPowerOrb.scale = defaultsTable.extraPowerOrb.scale end
 	if not D32CharacterData.powerFrame then D32CharacterData.powerFrame = defaultsTable.powerFrame end
 	if not D32CharacterData.defaultPlayerFrame then D32CharacterData.defaultPlayerFrame = defaultsTable.defaultPlayerFrame end
 	if not D32CharacterData.smoothing then D32CharacterData.smoothing = defaultsTable.defaultSmoothing end
@@ -1156,6 +1380,9 @@ local function checkDefaultsFromMemory()
 	TrackCombatCheckButton:SetChecked(D32CharacterData.combat.enabled)
 	ShowPetOrbPercentagesCheckButton:SetChecked(D32CharacterData.petOrb.showPercentage)
 	ShowPetOrbValuesCheckButton:SetChecked(D32CharacterData.petOrb.showValue)
+	UseExtraPowerOrbCheckButton:SetChecked(D32CharacterData.extraPowerOrb.enabled)
+	ShowExtraPowerOrbPercentagesCheckButton:SetChecked(D32CharacterData.extraPowerOrb.showPercentage)
+	ShowExtraPowerOrbValuesCheckButton:SetChecked(D32CharacterData.extraPowerOrb.showValue)
 	UsePowerTrackerCheckButton:SetChecked(D32CharacterData.powerFrame.show)
 	ShowBlizzPlayerFrameCheckButton:SetChecked(D32CharacterData.defaultPlayerFrame.show)
 
@@ -1169,10 +1396,27 @@ local function checkDefaultsFromMemory()
 	end
 	checkPetFontPlacement()
 
+	if not D32CharacterData.extraPowerOrb.showValue then
+		petOrb.font3:Hide()
+		petOrb.font4:Hide()
+	end
+	
 	if not D32CharacterData.petOrb.enabled then
 	 UnregisterUnitWatch(petOrb)
 	 petOrb:Hide()
 	end
+
+	if not D32CharacterData.extraPowerOrb.showPercentage then
+		extraPowerOrb.font1:Hide()
+		extraPowerOrb.font2:Hide()
+	end
+	checkExtraPowerFontPlacement()
+
+	if not D32CharacterData.extraPowerOrb.enabled then
+		extraPowerOrb:SetScript("OnUpdate",nil)
+		extraPowerOrb:Hide()
+	end
+
 	if not D32CharacterData.artwork.show then
 		angelFrame:Hide()
 		demonFrame:Hide()
@@ -1219,6 +1463,13 @@ local function updateColorsFromMemory()
 	petOrb.font2:SetTextColor(manaOrb.font1:GetTextColor())
 	petOrb.font3:SetTextColor(healthOrb.font2:GetTextColor())
 	petOrb.font4:SetTextColor(manaOrb.font2:GetTextColor())
+
+	extraPowerOrb.filling1:SetVertexColor(1,0,0)
+	extraPowerOrb.filling2:SetVertexColor(1,1,0)
+	extraPowerOrb.font1:SetTextColor(healthOrb.font1:GetTextColor())
+	extraPowerOrb.font2:SetTextColor(manaOrb.font1:GetTextColor())
+	extraPowerOrb.font3:SetTextColor(healthOrb.font2:GetTextColor())
+	extraPowerOrb.font4:SetTextColor(manaOrb.font2:GetTextColor())
 
 	D32ScaleSlider:SetValue((D32CharacterData.healthOrb.scale) * 100)
 
@@ -1354,6 +1605,14 @@ function D32ApplyChanges()
 	petOrb.font2:SetTextColor(manaOrb.font1:GetTextColor())
 	petOrb.font3:SetTextColor(healthOrb.font2:GetTextColor())
 	petOrb.font4:SetTextColor(manaOrb.font2:GetTextColor())
+
+	-- ToDo: add seperate configurations for the extra power bar
+	extraPowerOrb.filling1:SetVertexColor(1,0,0)
+	extraPowerOrb.filling2:SetVertexColor(1,1,0)
+	extraPowerOrb.font1:SetTextColor(healthOrb.font1:GetTextColor())
+	extraPowerOrb.font2:SetTextColor(manaOrb.font1:GetTextColor())
+	extraPowerOrb.font3:SetTextColor(healthOrb.font2:GetTextColor())
+	extraPowerOrb.font4:SetTextColor(manaOrb.font2:GetTextColor())
 end
 
 function D32ColorPicker(xmlElement)
@@ -1435,6 +1694,7 @@ end
 healthOrb = CreateOrb(nil,"D32_HealthOrb",defaultOrbSize,defaultTextures.healthOrb.fill,defaultTextures.healthOrb.rotation,-250,0,"BOTTOM",monitorHealth)
 manaOrb = CreateOrb(nil,"D32_ManaOrb",defaultOrbSize,defaultTextures.manaOrb.fill,defaultTextures.manaOrb.rotation,250,0,"BOTTOM",monitorPower)
 petOrb = CreatePetOrb(healthOrb,"D32_PetOrb",87,-95,70,nil)
+extraPowerOrb = CreateExtraPowerOrb(manaOrb,"D32_ExtraPowerOrb",87,-95,70,nil)
 powerFrame = nil
 if D32className == "Paladin" or D32className == "Warlock" or D32className == "Rogue" or D32className == "Druid" or D32className == "Monk" or D32className == "Priest" or D32className == "Shaman" then powerFrame =  createPowerFrame(images.."d32_powerFrame.tga",manaOrb,"PowerFrame",95,50,50,50) end
 if powerFrame then makeFrameMovable(powerFrame) end
@@ -1453,6 +1713,7 @@ makeFrameMovable(manaOrb, nil, function(point,relativePoint,xOfs,yOfs)
 	D32CharacterData.manaOrb.offsetY = yOfs
 end)
 makeFrameMovable(petOrb)
+makeFrameMovable(extraPowerOrb)
 
 function healthOrb:UpdateState()
 	local point, relativeTo, relativePoint = healthOrb:GetPoint()
@@ -1473,6 +1734,8 @@ eventFrame:RegisterEvent("PLAYER_REGEN_DISABLED")
 eventFrame:RegisterEvent("PLAYER_REGEN_ENABLED")
 eventFrame:RegisterEvent("PLAYER_LEVEL_UP")
 eventFrame:RegisterEvent("UNIT_PET")
+eventFrame:RegisterEvent("UNIT_ENERGY")
+eventFrame:RegisterEvent("UNIT_RAGE")
 if D32className == "Druid" then
 	eventFrame:RegisterEvent("UPDATE_SHAPESHIFT_FORM")
 end
@@ -1496,7 +1759,10 @@ function eventFrame:OnEvent(event,arg1)
 		healthOrb:UpdateState()
 		manaOrb:UpdateState()
 	elseif event == "VARIABLES_LOADED" then
-		D32MiniMapButtonPosition_LoadFromDefaults()		
+		D32MiniMapButtonPosition_LoadFromDefaults()	
+		if D32CharacterData.extraPowerOrb.enabled then
+			extraPowerOrb:SetScript("OnUpdate",updateExtraPowerValues)
+		end
 	elseif event == "UNIT_ENTERED_VEHICLE" then
 		if arg1 == "player" and UnitControllingVehicle("player") then
 			vehicleInUse = 1
@@ -1530,6 +1796,9 @@ function eventFrame:OnEvent(event,arg1)
 			previousPetHealth = UnitHealth("pet")
 			previousPetPower = UnitPower("pet")
 		end
+	elseif event == "UNIT_RAGE" or event == "UNIT_ENERGY" then
+		previousExtraPowerOrbRage = UnitPower("player",1)
+		previousExtraPowerEnergy = UnitPower("player",3)		
 	end
 end
 

@@ -399,7 +399,7 @@
 						else
 							petOrb.font3:Hide()
 							petOrb.font4:Hide()
-							D32CharacterData.petOrb.showValue = False
+							D32CharacterData.petOrb.showValue = false
 							checkPetFontPlacement()
 						end
 					</OnClick>
@@ -427,7 +427,7 @@
 						else
 							petOrb.font1:Hide()
 							petOrb.font2:Hide()
-							D32CharacterData.petOrb.showPercentage = False
+							D32CharacterData.petOrb.showPercentage = false
 							checkPetFontPlacement()
 						end
 					</OnClick>
@@ -439,6 +439,92 @@
 				</ButtonText>
 				<NormalFont style="FocusFontSmall" />
 			</CheckButton>
+
+			<!-- Extra Power Orb -->
+			<CheckButton name="UseExtraPowerOrbCheckButton" inherits="UICheckButtonTemplate" checked="true">
+				<Anchors>
+					<Anchor point="TOPLEFT">
+						<Offset x="200" y="-395" /> <!-- -38 of prev -->
+					</Anchor>
+				</Anchors>
+				<Scripts>
+					<OnClick>
+						if UseExtraPowerOrbCheckButton:GetChecked() then
+							D32CharacterData.extraPowerOrb.enabled = true
+							extraPowerOrb:Show()
+							extraPowerOrb:SetScript("OnUpdate",updateExtraPowerValues)
+						else
+							extraPowerOrb:SetScript("OnUpdate",nil)
+							extraPowerOrb:Hide()
+							D32CharacterData.extraPowerOrb.enabled = false
+						end
+					</OnClick>
+				</Scripts>
+				<ButtonText text="Use EP Orb" justifyH="LEFT">
+					<Anchors>
+						<Anchor x="30" y="0" point="LEFT" />
+					</Anchors>
+				</ButtonText>
+				<NormalFont style="FocusFontSmall" />
+			</CheckButton>
+			<CheckButton name="ShowExtraPowerOrbValuesCheckButton" inherits="UICheckButtonTemplate" checked="true">
+				<Anchors>
+					<Anchor point="TOPLEFT">
+						<Offset x="200" y="-433" />
+					</Anchor>
+				</Anchors>
+				<Scripts>
+					<OnClick>
+						if ShowExtraPowerOrbValuesCheckButton:GetChecked() then
+							extraPowerOrb.font3:Show()
+							extraPowerOrb.font4:Show()
+							D32CharacterData.extraPowerOrb.showValue = true
+							checkExtraPowerFontPlacement()
+						else
+							extraPowerOrb.font3:Hide()
+							extraPowerOrb.font4:Hide()
+							D32CharacterData.extraPowerOrb.showValue = false
+							checkExtraPowerFontPlacement()
+						end
+					</OnClick>
+				</Scripts>
+				<ButtonText text="Show EP Values" justifyH="LEFT">
+					<Anchors>
+						<Anchor x="30" y="0" point="LEFT" />
+					</Anchors>
+				</ButtonText>
+				<NormalFont style="FocusFontSmall" />
+			</CheckButton>
+			<CheckButton name="ShowExtraPowerOrbPercentagesCheckButton" inherits="UICheckButtonTemplate" checked="true">
+				<Anchors>
+					<Anchor point="TOPLEFT">
+						<Offset x="26" y="-433 "/>
+					</Anchor>
+				</Anchors>
+				<Scripts>
+					<OnClick>
+						if ShowExtraPowerOrbPercentagesCheckButton:GetChecked() then
+							extraPowerOrb.font1:Show()
+							extraPowerOrb.font2:Show()
+							D32CharacterData.extraPowerOrb.showPercentage = true
+							checkExtraPowerFontPlacement()
+						else
+							extraPowerOrb.font1:Hide()
+							extraPowerOrb.font2:Hide()
+							D32CharacterData.extraPowerOrb.showPercentage = false
+							checkExtraPowerFontPlacement()
+						end
+					</OnClick>
+				</Scripts>
+				<ButtonText text="Show EP Percentage" justifyH="LEFT">
+					<Anchors>
+						<Anchor x="30" y="0" point="LEFT" />
+					</Anchors>
+				</ButtonText>
+				<NormalFont style="FocusFontSmall" />
+			</CheckButton>
+			
+
 			<CheckButton name="UsePowerTrackerCheckButton" inherits="UICheckButtonTemplate" checked="true">
 				<Anchors>
 					<Anchor point="TOPLEFT">
