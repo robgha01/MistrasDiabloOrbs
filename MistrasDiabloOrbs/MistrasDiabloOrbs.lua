@@ -597,9 +597,9 @@ local function ExtraPowerRageUpdate(orb)
 
 	orb.filling1:SetHeight(targetTexHeight)
 	orb.filling1:SetTexCoord(0,1,math.abs(newDisplayPercentage - 1),1)
-	orb.galaxy1:SetAlpha(newDisplayPercentage * 0.2)
-	orb.galaxy2:SetAlpha(newDisplayPercentage * 0.2)
-	orb.galaxy3:SetAlpha(newDisplayPercentage * 0.2)
+	-- orb.galaxy1:SetAlpha(newDisplayPercentage * 0.2)
+	-- orb.galaxy2:SetAlpha(newDisplayPercentage * 0.2)
+	-- orb.galaxy3:SetAlpha(newDisplayPercentage * 0.2)
 end
 
 local previousExtraPowerEnergy = UnitPower("player",3)
