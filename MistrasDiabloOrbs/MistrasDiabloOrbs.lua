@@ -1396,16 +1396,16 @@ local function checkDefaultsFromMemory()
 	end
 	checkPetFontPlacement()
 
-	if not D32CharacterData.extraPowerOrb.showValue then
-		petOrb.font3:Hide()
-		petOrb.font4:Hide()
-	end
-	
 	if not D32CharacterData.petOrb.enabled then
 	 UnregisterUnitWatch(petOrb)
 	 petOrb:Hide()
 	end
 
+	if not D32CharacterData.extraPowerOrb.showValue then
+		extraPowerOrb.font3:Hide()
+		extraPowerOrb.font4:Hide()
+	end
+	
 	if not D32CharacterData.extraPowerOrb.showPercentage then
 		extraPowerOrb.font1:Hide()
 		extraPowerOrb.font2:Hide()
