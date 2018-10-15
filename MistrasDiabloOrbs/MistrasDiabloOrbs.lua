@@ -597,9 +597,8 @@ local function ExtraPowerRageUpdate(orb)
 
 	orb.filling1:SetHeight(targetTexHeight)
 	orb.filling1:SetTexCoord(0,1,math.abs(newDisplayPercentage - 1),1)
-	-- orb.galaxy1:SetAlpha(newDisplayPercentage * 0.2)
-	-- orb.galaxy2:SetAlpha(newDisplayPercentage * 0.2)
-	-- orb.galaxy3:SetAlpha(newDisplayPercentage * 0.2)
+	
+	return newDisplayPercentage
 end
 
 local previousExtraPowerEnergy = UnitPower("player",3)
@@ -648,11 +647,18 @@ local function ExtraPowerEnergyUpdate(orb)
 
 	orb.filling2:SetHeight(targetTexHeight)
 	orb.filling2:SetTexCoord(0,1,math.abs(newDisplayPercentage-1),1)
+
+	return newDisplayPercentage
 end
 
 function updateExtraPowerValues(orb)
-	ExtraPowerRageUpdate(orb)
-	ExtraPowerEnergyUpdate(orb)
+	local rageDisplayPercentage = ExtraPowerRageUpdate(orb)
+	local energyDisplayPercentage = ExtraPowerEnergyUpdate(orb)
+	local newDisplayPercentage = math.max(rageDisplayPercentage, energyDisplayPercentage)
+
+	orb.galaxy1:SetAlpha(newDisplayPercentage * 0.2)
+	orb.galaxy2:SetAlpha(newDisplayPercentage * 0.2)
+	orb.galaxy3:SetAlpha(newDisplayPercentage * 0.2)
 end
 
 local function CreateGalaxy(orb, file, duration,size,x,y)
