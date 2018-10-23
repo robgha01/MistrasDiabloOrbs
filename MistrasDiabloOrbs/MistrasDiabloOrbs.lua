@@ -874,8 +874,8 @@ local function CreatePetOrb(parent,name,size,offsetX,offsetY,monitorFunc)
 	return orb
 end
 
-
-local function CreateExtraPowerOrb(parent,name,size,offsetX,offsetY,monitorFunc)
+--cal function CreateOrb(parent,name,size,fillTexture,galaxyTexture,offsetX,offsetY,relativePoint,monitorFunc)
+local function CreateExtraPowerOrb(parent,name,size,offsetX,offsetY,relativePoint,monitorFunc)
 	local orb
 	orb = CreateFrame("Button",name,parent,"SecureActionButtonTemplate")
 	orb:SetHeight(size)
@@ -940,7 +940,11 @@ local function CreateExtraPowerOrb(parent,name,size,offsetX,offsetY,monitorFunc)
 
 	--position defaults
 	orb:ClearAllPoints()
-	orb:SetPoint("CENTER",offsetX,offsetY)
+	if parent then	
+		orb:SetPoint("CENTER",offsetX,offsetY)
+	else
+		orb:SetPoint(relativePoint,nil,relativePoint,offsetX,offsetY)
+	end
 
 	--show the orb
 	orb:Show()
@@ -1523,22 +1527,25 @@ function TryNewTextures(fillTexture,swirlTexture)
 end
 
 local function checkShapeShiftInfo()
+	D32UpdateOrbColor(manaOrb,D32CharacterData.manaOrb.orbColor,D32CharacterData.manaOrb.galaxy,D32CharacterData.manaOrb.font1,D32CharacterData.manaOrb.font2)
+
+	-- This will not work in ascension
 	--we can use the number of shapeshift forms to figure out if we're in bear form, or cat form, at lower levels
-	local numShapeshiftForms = GetNumShapeshiftForms()
-	local form = GetShapeshiftForm()
-	local druidFormTable = D32CharacterData.manaOrb
-	local changeOcurred = true
-	if form == 1 and numShapeshiftForms >=2 then
-		druidFormTable = D32CharacterData.druidColors.bear
-		previousPowerValue = UnitPower("player","RAGE")
-	elseif form == 2 or (numShapeshiftForms == 1 and form == 1) then
-		druidFormTable = D32CharacterData.druidColors.cat
-		previousPowerValue = UnitPower("player","ENERGY")
-	else
-		druidFormTable = D32CharacterData.manaOrb
-		previousPowerValue = UnitPower("player","MANA")
-	end
-	D32UpdateOrbColor(manaOrb,druidFormTable.orbColor,druidFormTable.galaxy,druidFormTable.font1,druidFormTable.font2)
+	-- local numShapeshiftForms = GetNumShapeshiftForms()
+	-- local form = GetShapeshiftForm()
+	-- local druidFormTable = D32CharacterData.manaOrb
+	-- local changeOcurred = true
+	-- if form == 1 and numShapeshiftForms >=2 then
+	-- 	druidFormTable = D32CharacterData.druidColors.bear
+	-- 	previousPowerValue = UnitPower("player","RAGE")
+	-- elseif form == 2 or (numShapeshiftForms == 1 and form == 1) then
+	-- 	druidFormTable = D32CharacterData.druidColors.cat
+	-- 	previousPowerValue = UnitPower("player","ENERGY")
+	-- else
+	-- 	druidFormTable = D32CharacterData.manaOrb
+	-- 	previousPowerValue = UnitPower("player","MANA")
+	-- end
+	-- D32UpdateOrbColor(manaOrb,druidFormTable.orbColor,druidFormTable.galaxy,druidFormTable.font1,druidFormTable.font2)
 end
 
 local function UpdateOrbTextures()
@@ -1700,7 +1707,13 @@ end
 healthOrb = CreateOrb(nil,"D32_HealthOrb",defaultOrbSize,defaultTextures.healthOrb.fill,defaultTextures.healthOrb.rotation,-250,0,"BOTTOM",monitorHealth)
 manaOrb = CreateOrb(nil,"D32_ManaOrb",defaultOrbSize,defaultTextures.manaOrb.fill,defaultTextures.manaOrb.rotation,250,0,"BOTTOM",monitorPower)
 petOrb = CreatePetOrb(healthOrb,"D32_PetOrb",87,-95,70,nil)
-extraPowerOrb = CreateExtraPowerOrb(manaOrb,"D32_ExtraPowerOrb",87,95,70,nil)
+extraPowerOrb = CreateExtraPowerOrb(manaOrb,"D32_ExtraPowerOrb",87,95,70,nil,nil)
+
+-- -- This is revese orbs
+-- extraPowerOrb = CreateExtraPowerOrb(nil,"D32_ExtraPowerOrb",defaultOrbSize,250,0,"BOTTOM",monitorPower)
+-- manaOrb = CreateOrb(extraPowerOrb,"D32_ManaOrb",87,defaultTextures.manaOrb.fill,defaultTextures.manaOrb.rotation,-95,70,"BOTTOM",monitorPower)
+-- -- End
+
 powerFrame = nil
 if D32className == "Paladin" or D32className == "Warlock" or D32className == "Rogue" or D32className == "Druid" or D32className == "Monk" or D32className == "Priest" or D32className == "Shaman" then
 	powerFrame =  createPowerFrame(images.."d32_powerFrame.tga",manaOrb,"PowerFrame",95,50,50,50)
