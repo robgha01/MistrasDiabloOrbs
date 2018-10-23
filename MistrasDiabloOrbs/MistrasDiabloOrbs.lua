@@ -936,7 +936,7 @@ local function CreateExtraPowerOrb(parent,name,size,offsetX,offsetY,monitorFunc)
 	orb.font4:SetPoint("CENTER",20,-8)
 	orb.font4:SetText("100")
 
-	orb:SetScript("OnUpdate",updatePetValues)
+	orb:SetScript("OnUpdate",updateExtraPowerValues)
 
 	--position defaults
 	orb:ClearAllPoints()
@@ -1700,9 +1700,11 @@ end
 healthOrb = CreateOrb(nil,"D32_HealthOrb",defaultOrbSize,defaultTextures.healthOrb.fill,defaultTextures.healthOrb.rotation,-250,0,"BOTTOM",monitorHealth)
 manaOrb = CreateOrb(nil,"D32_ManaOrb",defaultOrbSize,defaultTextures.manaOrb.fill,defaultTextures.manaOrb.rotation,250,0,"BOTTOM",monitorPower)
 petOrb = CreatePetOrb(healthOrb,"D32_PetOrb",87,-95,70,nil)
-extraPowerOrb = CreateExtraPowerOrb(manaOrb,"D32_ExtraPowerOrb",87,-95,70,nil)
+extraPowerOrb = CreateExtraPowerOrb(manaOrb,"D32_ExtraPowerOrb",87,95,70,nil)
 powerFrame = nil
-if D32className == "Paladin" or D32className == "Warlock" or D32className == "Rogue" or D32className == "Druid" or D32className == "Monk" or D32className == "Priest" or D32className == "Shaman" then powerFrame =  createPowerFrame(images.."d32_powerFrame.tga",manaOrb,"PowerFrame",95,50,50,50) end
+if D32className == "Paladin" or D32className == "Warlock" or D32className == "Rogue" or D32className == "Druid" or D32className == "Monk" or D32className == "Priest" or D32className == "Shaman" then
+	powerFrame =  createPowerFrame(images.."d32_powerFrame.tga",manaOrb,"PowerFrame",95,50,50,50)
+end
 if powerFrame then makeFrameMovable(powerFrame) end
 angelFrame = addArtwork(images.."d3_angel2test.tga",manaOrb,"AngelFrame",70,5,160,160)
 demonFrame = addArtwork(images.."d3_demon2test.tga",healthOrb,"DemonFrame",-90,5,160,160)
@@ -1742,9 +1744,9 @@ eventFrame:RegisterEvent("PLAYER_LEVEL_UP")
 eventFrame:RegisterEvent("UNIT_PET")
 eventFrame:RegisterEvent("UNIT_ENERGY")
 eventFrame:RegisterEvent("UNIT_RAGE")
-if D32className == "Druid" then
-	eventFrame:RegisterEvent("UPDATE_SHAPESHIFT_FORM")
-end
+-- if D32className == "Druid" then
+-- 	eventFrame:RegisterEvent("UPDATE_SHAPESHIFT_FORM")
+-- end
 
 local flagHide_PetFrame = false
 function eventFrame:OnEvent(event,arg1)
